@@ -1,39 +1,42 @@
-name: Update weather data
+name: Update Weather Data
 
+# Trigger every hour (adjust as needed)
 on:
   schedule:
-    # every 10 minutes
-    - cron: '*/10 * * * *'
-  workflow_dispatch: {}
+    - cron: "0 * * * *" # every hour
+  workflow_dispatch:     # manual trigger
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      # 1. Checkout the repo
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
+      # 2. Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.12"
 
+      # 3. Install dependencies
       - name: Install dependencies
-        run: pip install requests pyyaml
-
-      - name: Run fetch script
-        env:
-          AMBIENT_APP_KEY: ${{ secrets.AMBIENT_APP_KEY }}
-          AMBIENT_API_KEY: ${{ secrets.AMBIENT_API_KEY }}
         run: |
-          python scripts/fetch_data.py
+          python -m pip install --upgrade pip
+          pip install requests pyyaml
 
-      - name: Commit and push data files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 4. Run your Python script to generate data
+      - name: Generate Weather Data
+        run: |
+          python scripts/generate_weather_data.py
+
+      # 5. Commit and push updated files
+      - name: Commit and Push Data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data/stations.yml docs/data/stations.json || true
+          git add docs/data/stations.json docs/data/stations.yml || true
           git commit -m "Update weather data" || echo "No changes to commit"
           git push
