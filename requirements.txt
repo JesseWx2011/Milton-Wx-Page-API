@@ -9,5 +9,4 @@ geopandas
 pyproj
 scipy
 xarray
-pyart==0.2.3
-
+metpy
