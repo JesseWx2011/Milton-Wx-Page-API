@@ -1,5 +1,8 @@
 name: Update Weather Data
 
+permissions:
+  contents: write
+
 # Trigger every hour (adjust as needed)
 on:
   schedule:
@@ -40,3 +43,4 @@ jobs:
           git add docs/data/stations.json docs/data/stations.yml || true
           git commit -m "Update weather data" || echo "No changes to commit"
           git push
+
