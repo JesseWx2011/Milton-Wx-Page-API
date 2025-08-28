@@ -1,0 +1,60 @@
+{
+  "generated_at": "2025-08-28T14:35:51.498128+00:00",
+  "count": 6,
+  "stations": [
+    {
+      "source": "nws",
+      "id": "KPNS",
+      "name": "Pensacola - Pensacola International Airport",
+      "lat": 30.48,
+      "lon": -87.19,
+      "temp_f": 80.6,
+      "timestamp": "2025-08-28T14:15:00+00:00"
+    },
+    {
+      "source": "nws",
+      "id": "KMOB",
+      "name": "Mobile, Mobile Regional Airport",
+      "lat": 30.68,
+      "lon": -88.25,
+      "temp_f": 80.6,
+      "timestamp": "2025-08-28T14:15:00+00:00"
+    },
+    {
+      "source": "nws",
+      "id": "KCEW",
+      "name": "Crestview, Sikes Airport",
+      "lat": 30.78,
+      "lon": -86.52,
+      "temp_f": 75.2,
+      "timestamp": "2025-08-28T14:05:00+00:00"
+    },
+    {
+      "source": "nws",
+      "id": "K54J",
+      "name": "DeFuniak Spr AP",
+      "lat": 30.73,
+      "lon": -86.15,
+      "temp_f": 76.5,
+      "timestamp": "2025-08-28T14:15:00+00:00"
+    },
+    {
+      "source": "nws",
+      "id": "KJKA",
+      "name": "Jack Edwards Airport",
+      "lat": 30.29,
+      "lon": -87.67,
+      "temp_f": 78.8,
+      "timestamp": "2025-08-28T13:55:00+00:00"
+    },
+    {
+      "source": "nws",
+      "id": "KNPA",
+      "name": "Pensacola Naval Air Station",
+      "lat": 30.35,
+      "lon": -87.3199999,
+      "temp_f": 79.0,
+      "timestamp": "2025-08-28T13:56:00+00:00"
+    }
+  ]
+}
