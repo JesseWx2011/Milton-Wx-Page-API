@@ -37,6 +37,11 @@ jobs:
       - name: Upload generated image
         uses: actions/upload-artifact@v4
         with:
-          name: nexrad-image
-          path: images/*.png
+              name: nexrad-image
+              path: images/*.png
+              if-no-files-found: warn
+              compression-level: 6
+              overwrite: true
+              include-hidden-files: false
+
 
