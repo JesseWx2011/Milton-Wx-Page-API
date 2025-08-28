@@ -43,7 +43,7 @@ jobs:
           AMBIENT_APP_KEY: ${{ secrets.AMBIENT_APP_KEY }}
           AMBIENT_API_KEY: ${{ secrets.AMBIENT_API_KEY }}
         run: |
-          python scripts/generate_weather_image.py
+          python scripts/generate_weather_data.py
 
       - name: Commit and push generated files
         run: |
@@ -52,3 +52,4 @@ jobs:
           git add docs/images/Panhandle-Temp.png docs/data/stations.json docs/data/stations.yml || true
           git commit -m "Auto update weather image/data" || echo "No changes to commit"
           git push
+
