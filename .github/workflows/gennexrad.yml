@@ -3,7 +3,7 @@ name: Generate Radar Image
 on:
   schedule:
     - cron: '0 * * * *'  # runs every hour
-  workflow_dispatch:
+  workflow_dispatch:  # allows manual trigger
 
 jobs:
   plot-radar:
@@ -16,13 +16,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.12
+          python-version: 3.11  # safe for MetPy + Cartopy
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+      - name: Upgrade pip & wheel
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade --force-reinstall -r requirements.txt
 
       - name: Verify Python & packages
         run: |
@@ -36,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexrad-image
-          path: dirtonexradimage/nexradimage.png
+          path: dirtonexradimage/*.png
