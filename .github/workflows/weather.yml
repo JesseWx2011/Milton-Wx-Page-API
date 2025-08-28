@@ -2,32 +2,53 @@ name: Generate Weather Maps
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Runs every hour
-  workflow_dispatch:      # Allows manual runs
+    - cron: "0 * * * *"   # every hour (change if you want)
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Generate weather data + image
-        run: python scripts/generate_weather_data.py
-
-      - name: Commit and push changes
+      - name: Install system deps for Cartopy/GDAL/PROJ
         run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/data/stations.json docs/data/stations.yml docs/images/stations.png
-          git commit -m "Update weather data" || echo "No changes to commit"
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential wget git python3-dev \
+            libproj-dev proj-data proj-bin \
+            libgeos-dev libgeos++-dev \
+            gdal-bin libgdal-dev \
+            libffi-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install pip dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run generator (create image + data)
+        env:
+          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}   # only needed if your script uses it
+          AMBIENT_APP_KEY: ${{ secrets.AMBIENT_APP_KEY }}
+          AMBIENT_API_KEY: ${{ secrets.AMBIENT_API_KEY }}
+        run: |
+          python scripts/generate_weather_image.py
+
+      - name: Commit and push generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/images/Panhandle-Temp.png docs/data/stations.json docs/data/stations.yml || true
+          git commit -m "Auto update weather image/data" || echo "No changes to commit"
           git push
