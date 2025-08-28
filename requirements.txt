@@ -1,4 +1,7 @@
+requests
 PyYAML
 matplotlib
-requests
+cartopy
+pillow
+numpy
 pandas
