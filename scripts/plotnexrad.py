@@ -12,7 +12,7 @@ from metpy.calc import azimuth_range_to_lat_lon
 from metpy.units import units
 
 # Create output directory
-output_dir = "dirtonexradimage"
+output_dir = "images"
 os.makedirs(output_dir, exist_ok=True)
 
 # S3 bucket URL for KMOB Level-III file (replace with latest URL logic if needed)
@@ -67,3 +67,4 @@ plt.savefig(out_file, dpi=150, bbox_inches='tight')
 plt.close()
 
 print(f"Radar image saved to: {out_file}")
+
