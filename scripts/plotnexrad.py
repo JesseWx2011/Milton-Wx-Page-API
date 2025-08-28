@@ -1,84 +1,69 @@
 import os
-import re
-import requests
 import datetime
+import requests
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import pyart  # ensure pyart is installed in your environment
 
-# ------------------------------
-# Configuration
-# ------------------------------
-S3_BASE_URL = "https://noaa-nexrad-level2.s3.amazonaws.com/2025/08/28/KMOB/"
-OUTPUT_DIR = "dirtonexradimage"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+from metpy.io import Level3File
+from metpy.plots import add_metpy_logo, add_timestamp, colortables, USCOUNTIES
+from metpy.calc import azimuth_range_to_lat_lon
+from metpy.units import units
 
-# Map extent (same as tempmap.py)
-# Format: [lon_min, lon_max, lat_min, lat_max]
-MAP_EXTENT = [-87.5, -86.5, 30.5, 31.5]  # replace with your desired bounding box
+# Create output directory
+output_dir = "dirtonexradimage"
+os.makedirs(output_dir, exist_ok=True)
 
-# ------------------------------
-# Fetch latest KMOB file
-# ------------------------------
-def get_latest_kmob_file(s3_base_url=S3_BASE_URL):
-    response = requests.get(s3_base_url)
-    response.raise_for_status()
-    files = re.findall(r'KMOB\d+_\d+_V06', response.text)
-    if not files:
-        raise RuntimeError("No KMOB files found in S3 bucket")
-    latest_file = sorted(files)[-1]
-    file_url = f"{s3_base_url}{latest_file}"
-    return file_url
+# S3 bucket URL for KMOB Level-III file (replace with latest URL logic if needed)
+KMOB_file = "https://unidata-nexrad-level3.s3.amazonaws.com/MOB_N0B_2025_08_28_15_52_10"
 
-try:
-    nexrad_file_url = get_latest_kmob_file()
-    print(f"Latest KMOB file URL: {nexrad_file_url}")
-except Exception as e:
-    print(f"Error fetching latest KMOB file: {e}")
-    raise
+# Download Level-III file
+local_file = os.path.join(output_dir, os.path.basename(KMOB_file))
+if not os.path.exists(local_file):
+    r = requests.get(KMOB_file)
+    r.raise_for_status()
+    with open(local_file, "wb") as f:
+        f.write(r.content)
 
-# ------------------------------
-# Download the file locally
-# ------------------------------
-local_filename = os.path.join(OUTPUT_DIR, nexrad_file_url.split("/")[-1])
-if not os.path.exists(local_filename):
-    print(f"Downloading {nexrad_file_url} ...")
-    r = requests.get(nexrad_file_url, stream=True)
-    with open(local_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            f.write(chunk)
-else:
-    print(f"File already exists locally: {local_filename}")
+# Open Level-III file with MetPy
+f = Level3File(local_file)
 
-# ------------------------------
-# Read and plot radar data
-# ------------------------------
-radar = pyart.io.read(local_filename)
-fig = plt.figure(figsize=(10, 8))
-ax = plt.axes(projection=ccrs.PlateCarree())
-ax.set_extent(MAP_EXTENT, crs=ccrs.PlateCarree())
+# Grab first reflectivity product as an example
+datadict = f.sym_block[0][0]
+data = f.map_data(datadict['data'])
 
-# Add base map features
-ax.add_feature(cfeature.STATES)
-ax.add_feature(cfeature.COASTLINE)
-ax.add_feature(cfeature.BORDERS)
+# Get azimuths and ranges
+az = units.Quantity(np.array(datadict['start_az'] + [datadict['end_az'][-1]]), 'degrees')
+rng = units.Quantity(np.linspace(0, f.max_range, data.shape[-1] + 1), 'kilometers')
 
-# Plot reflectivity
-display = pyart.graph.RadarMapDisplay(radar)
-display.plot_ppi_map(
-    'reflectivity',
-    0,
-    ax=ax,
-    title=f"KMOB Reflectivity {datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
-    cmap='pyart_NWSRef',
-    colorbar_label='dBZ',
-    vmin=-20,
-    vmax=80
-)
+# Central latitude and longitude
+cent_lon, cent_lat = f.lon, f.lat
 
-# Save the figure
-output_file = os.path.join(OUTPUT_DIR, "nexradimage.png")
-plt.savefig(output_file, dpi=150, bbox_inches='tight')
-plt.close(fig)
-print(f"Radar image saved to {output_file}")
+# Convert azimuth/range to lat/lon
+xlocs, ylocs = azimuth_range_to_lat_lon(az, rng, cent_lon, cent_lat)
+
+# Set up plot
+fig = plt.figure(figsize=(10, 10))
+spec = gridspec.GridSpec(1, 1)
+ax = fig.add_subplot(spec[0], projection=ccrs.LambertConformal())
+ax.add_feature(USCOUNTIES, linewidth=0.5)
+
+# Use MetPy colortable for reflectivity
+norm, cmap = colortables.get_with_steps('NWSStormClearReflectivity', -20, 0.5)
+ax.pcolormesh(xlocs, ylocs, data, norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
+
+# Focus on your area (example: Milton, FL)
+ax.set_extent([-88.38, -86.337, 30.7, 30.182])
+ax.set_aspect('equal', 'datalim')
+
+# Add MetPy logo and timestamp
+add_metpy_logo(fig, 190, 85, size='large')
+add_timestamp(ax, f.metadata['prod_time'], y=0.02, high_contrast=True)
+
+# Save image
+out_file = os.path.join(output_dir, "nexradimage.png")
+plt.savefig(out_file, dpi=150, bbox_inches='tight')
+plt.close()
+
+print(f"Radar image saved to: {out_file}")
