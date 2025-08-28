@@ -5,3 +5,9 @@ cartopy
 pillow
 numpy
 pandas
+geopandas
+pyproj
+scipy
+xarray
+pyart
+pytz
