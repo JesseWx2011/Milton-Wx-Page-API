@@ -1,0 +1,28 @@
+name: Generate Radar Image
+
+on:
+  workflow_dispatch:  # allows manual triggering
+  schedule:
+    - cron: "0 * * * *"  # optional: runs every hour (UTC)
+
+jobs:
+  run-radar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Radar Script
+        run: |
+          python scripts/nexrad_radar_plot.py  # update with your actual script path
