@@ -1,16 +1,16 @@
 name: Generate Radar Image
 
 on:
-  workflow_dispatch:  # allows manual triggering
   schedule:
-    - cron: "0 * * * *"  # optional: runs every hour (UTC)
+    - cron: '0 * * * *'  # runs every hour, adjust as needed
+  workflow_dispatch:  # allows manual trigger
 
 jobs:
-  run-radar:
+  plot-radar:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -18,12 +18,22 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
 
-      - name: Run Radar Script
-        run: |
-          python scripts/plotnexrad.py  # update with your actual script path
+      - name: Install dependencies
+        run: pip install --upgrade --force-reinstall -r requirements.txt
 
+      - name: Verify Python & packages
+        run: |
+          python --version
+          python -m pip list
+
+      - name: Run radar plotting script
+        run: python scripts/plotnexrad.py  # update path if needed
+
+      - name: Upload generated image
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexrad-image
+          path: nexrad_base_reflectivity_map_*.png
