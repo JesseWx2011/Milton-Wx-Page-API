@@ -25,4 +25,5 @@ jobs:
 
       - name: Run Radar Script
         run: |
-          python scripts/nexrad_radar_plot.py  # update with your actual script path
+          python scripts/plotnexrad.py  # update with your actual script path
+
