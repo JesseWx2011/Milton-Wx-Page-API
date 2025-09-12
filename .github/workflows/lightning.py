@@ -143,7 +143,6 @@ def plot_and_save():
     ax.add_feature(cfeature.BORDERS, linewidth=0.6)
     try:
         ax.add_feature(cfeature.STATES, edgecolor='gray', linewidth=0.4)
-        ax.add_feature(states_provinces, edgecolor='gray', linewidth=0.4)
     except Exception:
         pass
 
