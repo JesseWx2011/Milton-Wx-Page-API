@@ -27,7 +27,11 @@ from zoneinfo import ZoneInfo
 # ---- Configuration ----
 PLACEFILE_URL = "https://saratoga-weather.org/USA-blitzortung/placefile.txt"
 OUTPUT_FILE = "blitzortung_map.png"
-COUNTRIES_SHP = "ne_10m_admin_0_countries.shp"  # local countries shapefile
+
+# Path to local countries shapefile in repo root
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
+COUNTRIES_SHP = os.path.join(REPO_ROOT, "ne_10m_admin_0_countries.shp")
+
 USE_ICON_IMAGE = False
 ICON_INDEX = 9
 SPRITE_TILE_SIZE = (30, 30)
