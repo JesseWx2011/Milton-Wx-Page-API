@@ -142,11 +142,7 @@ def plot_and_save():
     ax.add_feature(cfeature.COASTLINE, linewidth=0.6)
     ax.add_feature(cfeature.BORDERS, linewidth=0.6)
     try:
-        states_provinces = cfeature.NaturalEarthFeature(
-            category='cultural',
-            name='admin_1_states_provinces_lakes',
-            scale='50m',
-            facecolor='none')
+        ax.add_feature(cfeature.STATES, edgecolor='gray', linewidth=0.4)
         ax.add_feature(states_provinces, edgecolor='gray', linewidth=0.4)
     except Exception:
         pass
