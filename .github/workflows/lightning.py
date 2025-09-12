@@ -136,17 +136,14 @@ def plot_and_save():
     fig = plt.figure(figsize=(14,10))
     ax = fig.add_axes([0.01, 0.05, 0.98, 0.92], projection=proj)
 
-    # Add features
-    ax.add_feature(cfeature.OCEAN, zorder=0)
-    ax.add_feature(cfeature.LAND, zorder=0)
+    # ---- Fast built-in features (no downloads) ----
+    ax.add_feature(cfeature.OCEAN)
+    ax.add_feature(cfeature.LAND)
     ax.add_feature(cfeature.COASTLINE, linewidth=0.6)
     ax.add_feature(cfeature.BORDERS, linewidth=0.6)
-    try:
-        ax.add_feature(cfeature.STATES, edgecolor='gray', linewidth=0.4)
-    except Exception:
-        pass
+    ax.add_feature(cfeature.STATES, edgecolor='gray', linewidth=0.4)  # replacement for admin_1
 
-    # Example: adjust these to your preferred bounds
+    # Example bounds
     extent = [-126.329, -61.106299, 16.983, 61.106299]
     ax.set_extent(extent, crs=proj)
 
