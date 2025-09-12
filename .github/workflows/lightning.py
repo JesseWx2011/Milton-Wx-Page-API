@@ -1,8 +1,8 @@
 """
 lightning.py
 
-Fetches Blitzortung lightning data, plots on Cartopy using a local 10m countries shapefile,
-and saves an image every 15 minutes.
+Fetches Blitzortung lightning data, plots on Cartopy using only local shapefiles,
+and saves an image every 15 minutes. No automatic downloads from Natural Earth.
 
 Requires:
     pip install requests matplotlib cartopy pillow numpy
@@ -27,11 +27,7 @@ from zoneinfo import ZoneInfo
 # ---- Configuration ----
 PLACEFILE_URL = "https://saratoga-weather.org/USA-blitzortung/placefile.txt"
 OUTPUT_FILE = "blitzortung_map.png"
-
-# Path to local countries shapefile in repo root
-REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
-COUNTRIES_SHP = os.path.join(REPO_ROOT, "ne_10m_admin_0_countries.shp")
-
+COUNTRIES_SHP = "ne_10m_admin_0_countries.shp"  # must exist in repo root
 USE_ICON_IMAGE = False
 ICON_INDEX = 9
 SPRITE_TILE_SIZE = (30, 30)
@@ -143,26 +139,20 @@ def plot_and_save():
     fig = plt.figure(figsize=(14,10))
     ax = fig.add_axes([0.01, 0.05, 0.98, 0.92], projection=proj)
 
-    # ---- Local 10m countries shapefile ----
+    # ---- Backgrounds ----
+    ax.add_feature(cfeature.OCEAN, facecolor="lightblue")  # simple ocean
+
+    # ---- Local countries shapefile ----
     if os.path.exists(COUNTRIES_SHP):
-        countries_reader = shpreader.Reader(COUNTRIES_SHP)
+        reader = shpreader.Reader(COUNTRIES_SHP)
         ax.add_feature(
-            cfeature.ShapelyFeature(
-                countries_reader.geometries(),
-                ccrs.PlateCarree(),
-                facecolor="lightgreen",
-                edgecolor="black"
-            )
+            cfeature.ShapelyFeature(reader.geometries(), ccrs.PlateCarree(),
+                                    facecolor="lightgreen", edgecolor="black")
         )
     else:
-        print(f"Warning: {COUNTRIES_SHP} not found. Using default Cartopy LAND + BORDERS.")
-        ax.add_feature(cfeature.LAND)
-        ax.add_feature(cfeature.BORDERS)
+        ax.add_feature(cfeature.LAND, facecolor="lightgreen")  # fallback
 
-    # Optional ocean background
-    ax.add_feature(cfeature.OCEAN, facecolor="lightblue")
-
-    # Example bounds (adjust as needed)
+    # Example bounds
     extent = [-126.329, -61.106299, 16.983, 61.106299]
     ax.set_extent(extent, crs=proj)
 
