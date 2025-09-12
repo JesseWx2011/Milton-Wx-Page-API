@@ -1,7 +1,8 @@
 """
 lightning.py
 
-Fetches Blitzortung lightning data, plots on Cartopy, and saves an image every 15 minutes.
+Fetches Blitzortung lightning data, plots on Cartopy using a local 10m countries shapefile,
+and saves an image every 15 minutes.
 
 Requires:
     pip install requests matplotlib cartopy pillow numpy
@@ -16,6 +17,7 @@ import requests
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import cartopy.io.shapereader as shpreader
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from PIL import Image
 import numpy as np
@@ -25,6 +27,7 @@ from zoneinfo import ZoneInfo
 # ---- Configuration ----
 PLACEFILE_URL = "https://saratoga-weather.org/USA-blitzortung/placefile.txt"
 OUTPUT_FILE = "blitzortung_map.png"
+COUNTRIES_SHP = "ne_10m_admin_0_countries.shp"  # local countries shapefile
 USE_ICON_IMAGE = False
 ICON_INDEX = 9
 SPRITE_TILE_SIZE = (30, 30)
@@ -32,10 +35,6 @@ MARKER_COLOR = "#ffff00"
 MARKER_SIZE = 6
 MARKER_ALPHA = 0.9
 UPDATE_INTERVAL = 15 * 60  # 15 minutes in seconds
-
-# Detect if running in GitHub Actions
-IS_GITHUB_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"
-FEATURE_SCALE = "110m" if IS_GITHUB_ACTIONS else "50m"
 
 # ---- Helpers ----
 def fetch_text(url):
@@ -140,14 +139,26 @@ def plot_and_save():
     fig = plt.figure(figsize=(14,10))
     ax = fig.add_axes([0.01, 0.05, 0.98, 0.92], projection=proj)
 
-    # ---- Features with scale based on environment ----
-    ax.add_feature(cfeature.LAND.with_scale(FEATURE_SCALE))
-    ax.add_feature(cfeature.OCEAN.with_scale(FEATURE_SCALE))
-    ax.add_feature(cfeature.COASTLINE.with_scale(FEATURE_SCALE), linewidth=0.6)
-    ax.add_feature(cfeature.BORDERS.with_scale(FEATURE_SCALE), linewidth=0.6)
-    ax.add_feature(cfeature.STATES.with_scale(FEATURE_SCALE), edgecolor='gray', linewidth=0.4)
+    # ---- Local 10m countries shapefile ----
+    if os.path.exists(COUNTRIES_SHP):
+        countries_reader = shpreader.Reader(COUNTRIES_SHP)
+        ax.add_feature(
+            cfeature.ShapelyFeature(
+                countries_reader.geometries(),
+                ccrs.PlateCarree(),
+                facecolor="lightgreen",
+                edgecolor="black"
+            )
+        )
+    else:
+        print(f"Warning: {COUNTRIES_SHP} not found. Using default Cartopy LAND + BORDERS.")
+        ax.add_feature(cfeature.LAND)
+        ax.add_feature(cfeature.BORDERS)
 
-    # Map bounds
+    # Optional ocean background
+    ax.add_feature(cfeature.OCEAN, facecolor="lightblue")
+
+    # Example bounds (adjust as needed)
     extent = [-126.329, -61.106299, 16.983, 61.106299]
     ax.set_extent(extent, crs=proj)
 
