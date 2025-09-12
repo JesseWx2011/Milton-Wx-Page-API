@@ -1,0 +1,43 @@
+name: Update Lightning Map
+
+on:
+  schedule:
+    # Runs every 15 minutes
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update-map:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.12.5
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.5'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          pip install requests matplotlib cartopy pillow numpy
+
+      - name: Run lightning.py
+        run: |
+          cd .github/workflows
+          python lightning.py
+
+      - name: Commit and push updated map
+        run: |
+          cd ../../  # go back to root repo folder
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add blitzortung_map.png
+          git commit -m "Update lightning map [ci skip]" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
